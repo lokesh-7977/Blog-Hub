@@ -3,12 +3,17 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 
+
+import Posts from './routes/index.js';
+
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: "true" }));
+app.use(bodyParser.json());
 app.use(cors());
 app.use(cookieParser());
+
 
 app.get("/", (req, res) => {
   res.send("BLOG HUB API");
@@ -19,6 +24,8 @@ app.get("/health", (req, res) => {
     status : "BLOGHUB SERVER HEALTH RUNNING SUCCESSFULLY"
   })
 });
+
+app.use('/posts', Posts);
 
 app.all("*", (req, res) => {
   res.status(404).json({ message: "Route Not Found" });
