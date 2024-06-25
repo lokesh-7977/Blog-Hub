@@ -4,7 +4,8 @@ import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 
 
-import Posts from './routes/index.js';
+import { Posts,Coments } from './routes/index.js';
+
 
 const app = express();
 
@@ -26,6 +27,8 @@ app.get("/health", (req, res) => {
 });
 
 app.use('/posts', Posts);
+app.use('/coments', Coments);
+
 
 app.all("*", (req, res) => {
   res.status(404).json({ message: "Route Not Found" });
