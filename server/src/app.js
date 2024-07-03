@@ -3,8 +3,9 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 
-
-import { Posts,Coments } from './routes/index.js';
+import User from './routes/index.js';
+import Posts from './routes/index.js';
+import Coments  from './routes/index.js'
 
 
 const app = express();
@@ -26,6 +27,8 @@ app.get("/health", (req, res) => {
   })
 });
 
+
+app.use('/auth', User);
 app.use('/posts', Posts);
 app.use('/coments', Coments);
 

@@ -33,10 +33,11 @@ const postSchema = new mongoose.Schema(
           maxLength: [100, "Comment cannot exceed 100 characters"],
           trim: true,
         },
-        createdAt: {
-          type: Date,
-          default: Date.now,
-        },
+        slug: {
+          type: String,
+          required: true,
+          unique: true,
+        }
       },
     ],
   },
