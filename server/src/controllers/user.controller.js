@@ -1,9 +1,11 @@
 import User from "../models/user.schema.js";
 import bcrypt from "bcryptjs";
+import { config } from "../config/index.js";
 import jwt from "jsonwebtoken";
 
 export const register = async (req, res) => {
   const { fullname, username, email, password } = req.body;
+
   if (!fullname || !username || !email || !password) {
     return res.status(400).json({ message: "All fields are required" });
   }
@@ -11,8 +13,9 @@ export const register = async (req, res) => {
   if (email.indexOf("@") === -1 || email.indexOf(".") === -1) {
     return res.status(400).json({ message: "Invalid email" });
   }
+
   try {
-    const user = await User.findOne({ email: email });
+    const user = await User.findOne({ email });
     if (user) {
       return res.status(400).json({ message: "User already exists" });
     }
@@ -26,12 +29,20 @@ export const register = async (req, res) => {
 
     const salt = await bcrypt.genSalt(10);
     newUser.password = await bcrypt.hash(password, salt);
+    
     await newUser.save();
-    res.status(201).json({ message: "User registered successfully" });
+
+    const token = jwt.sign({ id: newUser._id }, config.JWT_SECRET, {
+      expiresIn: '1h', 
+    });
+
+    res.status(201).json({ message: "User registered successfully", token, user: newUser });
+    console.log(newUser, token);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 export const login = async (req, res) => {
   const { email, password } = req.body;
@@ -51,34 +62,26 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    const payload = {
-      user: {
-        id: user.id,
-      },
-    };
+    const token = jwt.sign({ id: user._id }, config.JWT_SECRET, {
+      expiresIn: '1h',
+    });
 
-    jwt.sign(
-      payload,
-      process.env.JWT_SECRET,
-      { expiresIn: 3600 },
-      (err, token) => {
-        if (err) throw err;
+    res
+      .cookie("token", token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+      })
+      .header("Authorization", `Bearer ${token}`)
+      .status(200)
+      .json({ message: "User logged in successfully", user, token });
 
-        res
-          .cookie("token", token, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "none",
-          })
-          .header("Authorization", `Bearer ${token}`)
-          .status(200)
-          .json({ message: "User logged in successfully", user, token });
-      }
-    );
+    console.log(user);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 export const getUser = async (req, res) => {
   const id = req.params.id;
